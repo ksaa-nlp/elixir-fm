@@ -107,7 +107,7 @@ function buildSiwarTypeMap(code: String, gender: any) {
   } else if (array[0] === "V") {
     wordFormsData.wordType = array[0];
 
-    wordFormsData.gender = array[8] === "F" ? "f" : "m";
+    wordFormsData.gender = array[6] === "F" ? "f" : "m";
     wordFormsData.numberWordForm =
       array[7] === "S" ? "1" : array[7] === "D" ? "2" : "3";
     wordFormsData.voice = array[3] === "P" ? "p" : "a";
@@ -115,6 +115,11 @@ function buildSiwarTypeMap(code: String, gender: any) {
     wordFormsData.person = array[5];
   } else if (array[0] === "A") {
     // TO Do
+    wordFormsData.wordType = array[0];
+    wordFormsData.def = array[9] === "I" ? "i" : array[9] === "D" ? "d" : "d2";
+    wordFormsData.gender = gender;
+    wordFormsData.numberWordForm =
+      array[7] === "S" ? "1" : array[7] === "D" ? "2" : "3";
   }
   return wordFormsData;
 }
