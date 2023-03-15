@@ -13,7 +13,7 @@ export const inflect: RequestHandler = (req, res) => {
     });
   }
 
-  exec(`echo "${query}" | elixir inflect `, (error, stdout, stderr) => {
+  exec(`echo "${query}" | elixir inflect`, (error, stdout, stderr) => {
     if (error) {
       console.error(`exec inflect error: ${error}`);
       return;
@@ -24,12 +24,28 @@ export const inflect: RequestHandler = (req, res) => {
     const entries = rows.map((item) => item.split("\t"));
     const cleanEntries = entries.filter((entry) => entry.length > 1);
 
-    let results = cleanEntries.map((item) => {
-      return {
-        type: buildSiwarTypeMap(item[1], gender),
-        decoded: item[2].trim(),
-      };
-    });
+    let results = cleanEntries
+      .filter(
+        (
+          item //  return the word inflection when they are:
+        ) =>
+          (item[1].split("")[0] === "V" && // Verbs
+            (item[1].split("")[1] === "P" || // Perfective (no limits)
+              (item[1].split("")[1] === "I" && item[1].split("")[2] === "I") || // Imperfective Indicative
+              (item[1].split("")[1] === "C" &&
+                item[1].split("")[2] === "J"))) || // Imperative Jussive
+          (item[1].split("")[0] === "N" && // Nouns
+            item[1].split("")[8] === "1") || // return only Nominative nounes
+          (item[1].split("")[0] === "A" && // Adjectives
+            item[1].split("")[8] === "1")
+      )
+
+      .map((item) => {
+        return {
+          type: buildSiwarTypeMap(item[1], gender),
+          decoded: item[2].trim(),
+        };
+      });
 
     const toBeDocodedString = results.map((x) => x.decoded).join(" ");
 
@@ -57,30 +73,6 @@ export const inflect: RequestHandler = (req, res) => {
     );
   });
 };
-
-function execWrapper(
-  command: string,
-  options = {},
-  otherData: String[],
-  gender:
-    | string
-    | QueryString.ParsedQs
-    | string[]
-    | QueryString.ParsedQs[]
-    | undefined
-) {
-  return new Promise((resolve, reject) => {
-    exec(command, options, (error, out, stderr) => {
-      if (error) return reject(error);
-      //   resolve({ out: [...otherData, out.trim()], err: stderr });
-      resolve({
-        encoded: otherData[2],
-        type: buildSiwarTypeMap(otherData[1], gender),
-        decoded: out.trim(),
-      });
-    });
-  });
-}
 
 type wordFormsDataType = {
   gender: string;
@@ -122,7 +114,7 @@ function buildSiwarTypeMap(code: String, gender: any) {
     // TO Do
     wordFormsData.wordType = array[0];
     wordFormsData.def = array[9] === "I" ? "i" : array[9] === "D" ? "d" : "d2";
-    wordFormsData.gender = gender;
+    wordFormsData.gender = array[6] === "F" ? "f" : "m";
     wordFormsData.numberWordForm =
       array[7] === "S" ? "1" : array[7] === "D" ? "2" : "3";
   }
