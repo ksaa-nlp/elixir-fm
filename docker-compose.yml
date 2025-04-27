@@ -1,0 +1,10 @@
+services:
+  elixirfm:
+    build:
+      context: .
+      dockerfile: build.dockerfile
+    restart: until-stopped
+    image: elixirfm
+    container_name: elixirfm
+    ports:
+      - '127.0.0.1:3030:3030'
